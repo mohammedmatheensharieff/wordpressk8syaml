@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: ihdbserver
+
+spec:
+  replicas: 1
+  
+  selector:
+    matchLabels:
+      component: ihdbserver
+  
+  template:
+    metadata:
+      labels:
+        component: ihdbserver
+      
+    spec:
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: database-pvc
+
+      containers:
+        - name: ihdbserver
+          image: mysql
+          ports:
+            - containerPort: 3306
+            
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysqlpassword
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: ihapp-config
+                  key: MYSQL_DATABASE
+
+
+  
+
